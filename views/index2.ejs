@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <title>Student info</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  </head>
+  <body>
+<h1 class="container text-muted">Class Info</h1>
+<div id="msg"></div>
+<div id="updateform"></div>
+<!-- insert operation -->
+            <form >
+              <input class="form-control" type="text" id="addName" name="learner_name" placeholder="Enter Name" required />
+              <input class="form-control" type="text" id="addEmail" name="learner_email" onkeyup="InnerEmailCheck(this.value)"  onblur="ValidateEmail(this.value)" placeholder="Enter Email" required />
+              <input class="form-control" type="text" id="addMobile" name="mobile_number" onblur="phonenumber(this.value)" placeholder="Enter Mobile Number" required />
+              <br><h3>Select Subjects:</h3><br>
+                      <label><input type="checkbox" value=1 name="subject"> PHP</label>
+                      <label><input type="checkbox" value=2 name="subject"> React</label>
+                      <label><input type="checkbox" value=3 name="subject"> Node</label>
+                      <label><input type="checkbox" value=4 name="subject"> Laravel</label>
+                      <label><input type="checkbox" value=5 name="subject"> Django</label><br>
+                <button class="btn btn-success" id="addLearner" type="submit">ADD</button>
+            </form><br><br>
+<button id="get-button" class="btn btn-info" >GET Learners</button>
+<button id="clearAll" class="btn btn-danger" >CLEAR Learners</button>
+
+<table class="table table-striped" id="myTable">
+    <thead>
+      <tr>
+        <th scope="col">Learner id</th>
+        <th scope="col">Learner Name</th>
+        <th scope="col">Learner email</th>
+        <th scope="col">Mobile Number</th>
+        <th scope="col">Courses</th>
+        <th scope="col">chapters</th>
+        <th scope="col">important questions</th>
+        <th scope="col">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+  </table>
+<script>
+
+$(document).ready(function(){
+
+
+
+/// get all details of learner
+$('#get-button').on('click',function() {
+  console.log("Button clicked");
+  $('#clearAll').click();
+  jQuery.ajax({
+  url:'/learners',
+  method: 'GET',
+  contentType: 'application/json',
+  success:function(response){
+     console.log("AJax called");
+     console.log(response);
+     var tbodyE1 = $('tbody');
+      response.data.forEach((Learner) => {
+          tbodyE1.append('<tr><th scope="row" class="id">'+Learner.learner_id +'</th>\
+            <td class="name">'+Learner.learner_name+'</td>\
+            <td class="email">'+Learner.learner_email+'</td>\
+            <td class="mobile">'+Learner.mobile_number+'</td>\
+            <td class="course">'+Learner.subjects+'</td>\
+            <td class="chapter">'+Learner.chapters+'</td>\
+            <td class="important">'+Learner.imps+'</td>\
+            <td class="action">\
+              <button class="delete-button">delete</button>\
+            <button class="update-button">Update</button></td>\
+         <tr>');
+          });
+        }
+       })
+    });
+
+$("#addLearner").hover(function(){
+  ValidateEmail($('#addEmail').val());
+  phonenumber($('#addMobile').val());
+  InnerEmailCheck($('#addEmail').val());
+
+  }, function(){
+  ValidateEmail($('#addEmail').val());
+  phonenumber($('#addMobile').val());
+  InnerEmailCheck($('#addEmail').val());
+});
+
+
+// add learner
+$('#addLearner').on('click',function(event){
+
+
+  if (confirm("Are you sure you want")) {
+    event.preventDefault();
+    var addname = $('#addName').val();
+    var addemail = $('#addEmail').val();
+    var addmobile = $('#addMobile').val();
+    var subjectarray = [];
+    $.each($("input[name='subject']:checked"),function(){  subjectarray.push($(this).val()); });
+      console.log("add learner is called");
+      console.log(addname,addemail,addmobile,subjectarray);
+      jQuery.ajax({
+        url:'/_insert',
+        method: 'POST',
+        contentType: 'application/json',
+        data:JSON.stringify({learner_name:addname ,learner_email:addemail ,mobile_number:addmobile,course_Id: subjectarray }),
+        success:function(response2){
+          $('#msg').text(response2.data);
+          $('#get-button').click();}
+          })
+        } else {
+            $("#msg").text("You pressed Cancel!");
+          }
+
+
+});
+
+
+
+// to delete record
+$('table').on('click','.delete-button',function(){
+  console.log("delete is called");
+  if (confirm("Are you sure you want")) {
+    var rowe1 = $(this).closest('tr');
+   var id =  rowe1.find('.id').text();
+jQuery.ajax({
+  url:'/learners/'+ id,
+  method: 'DELETE',
+  contentType: 'application/json',
+  success: function(response){
+    console.log(response+"ajax delete is called");
+    $('#msg').text(response.data);
+    $('#clearAll').click();
+    $('#get-button').click();
+      }
+    })
+  } else {
+    $("#msg").text("You pressed Cancel!");
+  }
+  });
+
+
+
+
+//to clear all
+$('#clearAll').on('click',function(){
+  console.log("Clear all is called");
+  $('tbody').empty();
+  })
+
+// on update request
+$('table').on('click','.update-button',function(){
+  var rowe2 = $(this).closest('tr');
+  var id =  rowe2.find('.id').text();
+  var name = rowe2.find('.name').text();
+  var email = rowe2.find('.email').text();
+  var mobile = rowe2.find('.mobile').text();
+  // alert("update is called"+id+name+email+course);
+  $('#updateform').html('<form>\
+    <input class="form-control" type="text" id="updateId" value="'+ id+ '"name="learner_id"  readonly="true" />\
+  <input class="form-control" type="text" id="updateName" value="'+ name+ '" name="learner_name"  required />\
+  <input class="form-control" type="text" id="updateEmail" onblur="ValidateEmail(this.value)" value="'+ email+ '" name="learner_email" required />\
+  <input class="form-control" type="text" id="updateMobile" onkeyup="InnerEmailCheck(this.value)" onblur="phonenumber(this.value)" value="'+ mobile + '" name="course_Id" required />\
+  <h3>Select your subjects:</h3>\
+                      <label><input type="checkbox" value=1 name="subject"> PHP</label>\
+                      <label><input type="checkbox" value=2 name="subject"> React</label>\
+                      <label><input type="checkbox" value=3 name="subject"> Node</label>\
+                      <label><input type="checkbox" value=4 name="subject"> Laravel</label>\
+                      <label><input type="checkbox" value=5 name="subject"> Django</label><br>\
+  <button class="btn btn-success" id="updateLearner" onclick="updateinfo()" type="button">UPDATE</button>\
+</form>');
+    $('#addLearner').parent().remove();
+  });
+
+
+
+$("#get-button").click();
+}); //document.ready
+
+
+var updateinfo = () => {
+      ValidateEmail($('#updateEmail').val());
+      phonenumber($('#updateMobile').val());
+  if (confirm("Press a button!")) {
+        var updateid = $('#updateId').val();
+        var updatename = $('#updateName').val();
+        var updateemail = $('#updateEmail').val();
+        var updatemobile = $('#updateMobile').val();
+        var upsubjectarray = [];
+                  $.each($("input[name='subject']:checked"), function(){
+                      upsubjectarray.push($(this).val());
+                  });
+        jQuery.ajax({
+          url:'/update',
+          method: 'PUT',
+          contentType: 'application/json',
+          data:JSON.stringify({ learner_id:updateid , learner_name:updatename , learner_email : updateemail , mobile_number : updatemobile , course_Id : upsubjectarray }),
+          success: function(response){
+            console.log("Successfully updated");
+            $('#msg').text(response.data);
+            $('#clearAll').click();
+            $('#get-button').click();
+        }
+      })
+    } else {
+    $("#msg").text("You pressed Cancel!");
+  }
+
+}
+
+var ValidateEmail = (mail) => {
+  var em = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/ ;
+ if (em.test(mail)){
+  $('form button').attr('disabled',false);
+    return (true);
+  }
+  $('form button').attr('disabled',true);
+  alert("You have entered an invalid email address!");
+    return (false);
+}
+
+var phonenumber = (inputtxt) => {
+  var phoneno = /^\d{10}$/;
+  if( (inputtxt.match(phoneno) )){
+    $('form button').attr('disabled',false);
+    return(true);
+            }else{
+              $('form button').attr('disabled',true);
+        alert("Your number is wrong");
+        return(false);
+    }
+}
+
+var InnerEmailCheck = (eml) =>{
+jQuery.ajax({
+url:'/email/'+ eml,
+method: 'GET',
+contentType: 'application/json',
+success:function(response){
+  $("#msg").text("Your email already exists : "+response.How);
+  if(response.How=="No"){
+    $('form button').attr('disabled',false);
+   } //code for adding user
+     else{  $('form button').attr('disabled',true);
+  return("Exists");
+     }  /// code for already exists email
+    }
+  })
+}
+
+//hover event for update
+$("#updateLearner").hover(function(){
+  ValidateEmail($('#updateEmail').val());
+  phonenumber($('#updateMobile').val());
+
+  }, function(){
+  ValidateEmail($('#updateEmail').val());
+  phonenumber($('#updateMobile').val());
+});
+
+</script>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+  </body>
+</html>

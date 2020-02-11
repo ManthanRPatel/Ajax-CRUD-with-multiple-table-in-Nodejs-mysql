@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <title>Student info</title>
+  </head>
+  <body>
+<h1 class="container text-muted">Class Info</h1>
+<div class="alert alert-primary" role="alert"><%=message%></div><br><br>
+
+
+<!-- insert operation -->
+<form method="POST" action="/_insert">
+  <input class="form-control" type="text" name="learner_name" placeholder="Enter Name" required />
+  <input class="form-control" type="text" name="learner_email" placeholder="Enter Email" required />
+  <input class="form-control" type="text" name="course_Id" placeholder="Enter course id" required />
+  <button class="btn btn-success" id="addLearner" type="submit">ADD</button>
+</form><br><br>
+
+
+<table class="table table-striped" id="myTable">
+    <thead>
+      <tr>
+        <th scope="col">Learner id</th>
+        <th scope="col">Learner Name</th>
+        <th scope="col">Learner email</th>
+        <th scope="col">Course Name</th>
+        <th scope="col">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% data.forEach((Learner)=>{%>
+      <tr>
+        <th scope="row" id="id"><%=Learner.learner_id%></th>
+        <td id="name"><%=Learner.learner_name%></td>
+        <td id="email"><%=Learner.learner_email%></td>
+        <td id="course"> <%=Learner.course_Id%></td>
+        <td id="action">
+          <form method="POST" action="/learners/<%=Learner.learner_id%>" enctype="application/x-www-form-urlencoded">
+            <input type="hidden" name="_method" value="DELETE">
+            <button class="btn btn-danger" type="submit">delete</button>
+          </form>
+            <button class="btn btn-info" onclick="window.location.href='/update/<%=Learner.learner_id%>'" type="submit">Update</button>
+        </td>
+      </tr>
+      <%});%>
+    </tbody>
+  </table>
+<script>
+
+</script>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+  </body>
+</html>
